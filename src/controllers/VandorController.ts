@@ -39,7 +39,15 @@ export const getVandorProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const user = req.user;
+  if (user) {
+    const existingVandor = await FindVandor(user._id);
+    return res.status(200).json(existingVandor);
+  }
+
+  return res.status(404).json({ message: "Vendor information not found!" });
+};
 
 export const updateVandorProfile = async (
   req: Request,

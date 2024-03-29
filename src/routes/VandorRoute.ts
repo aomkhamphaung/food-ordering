@@ -5,11 +5,13 @@ import {
   updateVandorProfile,
   updateVandorService,
 } from "../controllers";
+import { Authenticate } from "../middlewares";
 
 const router = express.Router();
 
 router.post("/login", VandorLogin);
 
+router.use(Authenticate);
 router.get("/profile", getVandorProfile);
 router.patch("/profile", updateVandorProfile);
 router.patch("/service", updateVandorService);
