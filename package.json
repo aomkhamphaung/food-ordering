@@ -15,10 +15,15 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
+    "@types/mongoose": "^5.11.97",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "mongodb": "^6.5.0",
+    "mongoose": "^8.2.4",
     "ts-node-dev": "^2.0.0"
   }
 }
