@@ -52,7 +52,15 @@ export const GetVandors = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const vandors = await Vandor.find();
+
+  if (vandors !== null) {
+    return res.status(200).json(vandors);
+  }
+
+  return res.status(404).json({ message: "No vandor data found!" });
+};
 
 export const GetVandorById = async (
   req: Request,
