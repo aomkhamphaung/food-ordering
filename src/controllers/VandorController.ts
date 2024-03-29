@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { VandorLoginInput } from "../dto";
 import { FindVandor } from "./AdminController";
-import { ValidatePassword } from "../utility";
+import { GenerateToken, ValidatePassword } from "../utility";
 
 export const VandorLogin = async (
   req: Request,
@@ -19,7 +19,14 @@ export const VandorLogin = async (
     );
 
     if (validation) {
-      return res.json(existingVandor);
+      const signature = GenerateToken({
+        _id: existingVandor.id,
+        email: existingVandor.email,
+        name: existingVandor.name,
+        foodType: existingVandor.foodType,
+      });
+
+      return res.status(200).json(signature);
     } else {
       return res.status(401).json({ message: "Wrong password!" });
     }
@@ -27,3 +34,21 @@ export const VandorLogin = async (
 
   return res.status(401).json({ message: "Invalid login credentials!" });
 };
+
+export const getVandorProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+export const updateVandorProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+export const updateVandorService = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
