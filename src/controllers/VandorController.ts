@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { VandorLoginInput } from "../dto";
+import { EditVandorInput, VandorLoginInput } from "../dto";
 import { FindVandor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
 
@@ -53,7 +53,29 @@ export const updateVandorProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const { foodType, name, address, phone } = <EditVandorInput>req.body;
+
+  const user = req.user;
+
+  if (user) {
+    const existingVandor = await FindVandor(user._id);
+
+    if (existingVandor !== null) {
+      existingVandor.name = name;
+      existingVandor.phone = phone;
+      existingVandor.address = address;
+      existingVandor.foodType = foodType;
+
+      const savedResult = await existingVandor.save();
+      return res.status(200).json(savedResult);
+    }
+
+    return res.status(200).json(existingVandor);
+  }
+
+  return res.status(404).json({ message: "Vandor information not found!" });
+};
 
 export const updateVandorService = async (
   req: Request,
