@@ -29,6 +29,7 @@ const VandorSchema = new Schema(
     ServiceAvailable: { type: Boolean },
     coverImages: { type: [String] },
     rating: { type: Number },
+    salt: { type: String },
     // foods: [
     //   {
     //     type: mongoose.SchemaTypes.ObjectId,
