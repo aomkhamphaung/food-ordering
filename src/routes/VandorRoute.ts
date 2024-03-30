@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import {
   VandorLogin,
+  createFood,
   getVandorProfile,
   updateVandorProfile,
   updateVandorService,
@@ -15,6 +16,9 @@ router.use(Authenticate);
 router.get("/profile", getVandorProfile);
 router.patch("/profile", updateVandorProfile);
 router.patch("/service", updateVandorService);
+
+router.post("/food", createFood);
+router.get("/foods");
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.send({ message: "Vandor Route" });
