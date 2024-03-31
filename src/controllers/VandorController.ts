@@ -4,7 +4,7 @@ import { FindVandor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
 import { Food } from "../models";
 
-export const VandorLogin = async (
+export const vandorLogin = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -112,13 +112,17 @@ export const createFood = async (
     const vandor = await FindVandor(user._id);
 
     if (vandor !== null) {
+      const files = req.files as [Express.Multer.File];
+
+      const images = files.map((file: Express.Multer.File) => file.filename);
+
       const createdFood = await Food.create({
         vandorId: vandor._id,
         name: name,
         description: description,
         category: category,
         foodType: foodType,
-        images: ["image.png"],
+        images: images,
         readyTime: readyTime,
         price: price,
         rating: 0,
@@ -140,7 +144,13 @@ export const getFoods = async (
   next: NextFunction
 ) => {
   const user = req.user;
+
   if (user) {
+    const foods = await Food.find({ vandorId: user._id });
+
+    if (foods !== null) {
+      return res.status(200).json(foods);
+    }
   }
 
   return res.status(404).json({ message: "Food information not found!" });
