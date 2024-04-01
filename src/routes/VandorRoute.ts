@@ -28,9 +28,12 @@ const upload = multer({ storage: imageStorage }).array("images", 10);
 router.post("/login", vandorLogin);
 
 router.use(Authenticate);
+
 router.get("/profile", getVandorProfile);
 router.patch("/profile", updateVandorProfile);
+
 router.patch("/coverimage", upload, updateVandorCoverImage);
+
 router.patch("/service", updateVandorService);
 
 router.post("/food", upload, createFood);
