@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CreateFoodInput, EditVandorInput, VandorLoginInput } from "../dto";
 import { FindVandor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
-import { Food } from "../models";
+import { Food, Vandor } from "../models";
 
 export const vandorLogin = async (
   req: Request,
@@ -20,14 +20,14 @@ export const vandorLogin = async (
     );
 
     if (validation) {
-      const signature = GenerateToken({
+      const token = GenerateToken({
         _id: existingVandor.id,
         email: existingVandor.email,
         name: existingVandor.name,
         foodType: existingVandor.foodType,
       });
 
-      return res.status(200).json(signature);
+      return res.status(200).json(token);
     } else {
       return res.status(401).json({ message: "Wrong password!" });
     }
@@ -96,6 +96,30 @@ export const updateVandorService = async (
 
     return res.status(200).json(existingVandor);
   }
+};
+
+export const updateVandorCoverImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+
+  if (user) {
+    const vandor = await FindVandor(user._id);
+
+    if (vandor !== null) {
+      const files = req.files as [Express.Multer.File];
+
+      const images = files.map((file: Express.Multer.File) => file.filename);
+      vandor.coverImages.push(...images);
+
+      const result = await vandor.save();
+
+      return res.status(200).json(result);
+    }
+  }
+  return res.status(500).json({ message: "Something went wrong!" });
 };
 
 export const createFood = async (
