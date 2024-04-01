@@ -11,6 +11,7 @@ export const FindVandor = async (id: string | undefined, email?: string) => {
   }
 };
 
+/**-------------------- Create Vandor -------------------- */
 export const CreateVandor = async (
   req: Request,
   res: Response,
@@ -57,6 +58,7 @@ export const CreateVandor = async (
   return res.status(200).json(createdVandor);
 };
 
+/**-------------------- Get All Vandors -------------------- */
 export const GetVandors = async (
   req: Request,
   res: Response,
@@ -71,6 +73,7 @@ export const GetVandors = async (
   return res.status(404).json({ message: "No vandor data found!" });
 };
 
+/**-------------------- Get Vandor by Id -------------------- */
 export const GetVandorById = async (
   req: Request,
   res: Response,

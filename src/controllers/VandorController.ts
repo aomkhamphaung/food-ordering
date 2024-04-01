@@ -4,6 +4,7 @@ import { FindVandor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
 import { Food, Vandor } from "../models";
 
+/**-------------------- Vandor Login -------------------- */
 export const vandorLogin = async (
   req: Request,
   res: Response,
@@ -36,6 +37,7 @@ export const vandorLogin = async (
   return res.status(401).json({ message: "Invalid login credentials!" });
 };
 
+/**-------------------- Get Vandor Profile -------------------- */
 export const getVandorProfile = async (
   req: Request,
   res: Response,
@@ -50,6 +52,7 @@ export const getVandorProfile = async (
   return res.status(404).json({ message: "Vendor information not found!" });
 };
 
+/**-------------------- Update Vandor Profile -------------------- */
 export const updateVandorProfile = async (
   req: Request,
   res: Response,
@@ -78,6 +81,7 @@ export const updateVandorProfile = async (
   return res.status(404).json({ message: "Vandor information not found!" });
 };
 
+/**-------------------- Update Vandor Service -------------------- */
 export const updateVandorService = async (
   req: Request,
   res: Response,
@@ -98,6 +102,7 @@ export const updateVandorService = async (
   }
 };
 
+/**-------------------- Update Vandor Cover Image -------------------- */
 export const updateVandorCoverImage = async (
   req: Request,
   res: Response,
@@ -122,6 +127,7 @@ export const updateVandorCoverImage = async (
   return res.status(500).json({ message: "Something went wrong!" });
 };
 
+/**-------------------- Create Food -------------------- */
 export const createFood = async (
   req: Request,
   res: Response,
@@ -162,6 +168,7 @@ export const createFood = async (
   return res.status(500).json({ message: "Something went wrong!" });
 };
 
+/**-------------------- Get All Foods -------------------- */
 export const getFoods = async (
   req: Request,
   res: Response,
