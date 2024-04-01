@@ -1,30 +1,17 @@
 import express from "express";
-import { AdminRoute, VandorRoute } from "./routes";
-import bodyParser from "body-parser";
-import mongoose from "mongoose";
-import { MONGO_URI } from "./config";
-import path from "path";
+import App from "./services/ExpressApp";
+import dbConnection from "./services/Database";
 
-(async () => {
+const server = async () => {
   const app = express();
 
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use("/images", express.static(path.join(__dirname, "../", "images")));
+  await dbConnection();
 
-  app.use("/admin", AdminRoute);
-  app.use("/vandor", VandorRoute);
-
-  await mongoose
-    .connect(MONGO_URI)
-    .then((result) => {
-      console.log("Conntect to mongodb");
-    })
-    .catch((err) => {
-      console.log("error " + err);
-    });
+  await App(app);
 
   app.listen(5000, () => {
     console.log(`🚀 Server is up on ::1:5000`);
   });
-})();
+};
+
+server();
