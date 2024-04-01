@@ -78,11 +78,36 @@ export const getSearchFoods = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const pincode = req.params.pincode;
+
+  const result = await Vandor.find({
+    pincode: pincode,
+    serviceAvailable: true,
+  }).populate("foods");
+
+  if (result.length > 0) {
+    let foodResult: any = [];
+    result.map((item) => foodResult.push(...item.foods));
+
+    return res.status(200).json(foodResult);
+  }
+
+  return res.status(404).json({ message: "No Data Found!" });
+};
 
 /**-------------------- Find Restaurant By Id -------------------- */
 export const getRestaurantById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const id = req.params.id;
+  const result = await Vandor.findById(id).populate("foods");
+
+  if (result) {
+    res.status(200).json(result);
+  }
+
+  res.status(404).json({ message: "No Data Found!" });
+};
