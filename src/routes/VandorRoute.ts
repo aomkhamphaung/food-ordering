@@ -1,4 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
+import multer from "multer";
+import path from "path";
+
 import {
   vandorLogin,
   createFood,
@@ -8,7 +11,6 @@ import {
   getFoods,
 } from "../controllers";
 import { Authenticate } from "../middlewares";
-import multer from "multer";
 
 const router = express.Router();
 
@@ -17,11 +19,11 @@ const imageStorage = multer.diskStorage({
     cb(null, "./src/images");
   },
   filename: function (req, file, cb) {
-    cb(null, new Date().toISOString() + "_" + file.originalname);
+    cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname);
   },
 });
 
-const images = multer({ storage: imageStorage }).array("images", 10);
+const upload = multer({ storage: imageStorage }).array("images", 10);
 
 router.post("/login", vandorLogin);
 
@@ -30,7 +32,7 @@ router.get("/profile", getVandorProfile);
 router.patch("/profile", updateVandorProfile);
 router.patch("/service", updateVandorService);
 
-router.post("/food", images, createFood);
+router.post("/food", upload, createFood);
 router.get("/foods", getFoods);
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
