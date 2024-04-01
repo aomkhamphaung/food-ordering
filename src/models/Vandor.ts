@@ -30,12 +30,12 @@ const VandorSchema = new Schema(
     coverImages: { type: [String] },
     rating: { type: Number },
     salt: { type: String },
-    // foods: [
-    //   {
-    //     type: mongoose.SchemaTypes.ObjectId,
-    //     ref: "food",
-    //   },
-    // ],
+    foods: [
+      {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "food",
+      },
+    ],
   },
   {
     toJSON: {
