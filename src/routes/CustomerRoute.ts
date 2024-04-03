@@ -28,6 +28,6 @@ router.get("/otp", requestOtp);
 
 /**-------------------- Profile -------------------- */
 router.get("/profile", getCustomerProfile);
-router.patch("profile", updateCustomerProfile);
+router.patch("/profile", updateCustomerProfile);
 
 export { router as CustomerRoute };
