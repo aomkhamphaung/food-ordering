@@ -2,7 +2,13 @@ import express, { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import { CreateCustomerInput } from "../dto";
 import { validate } from "class-validator";
-import { GenerateOtp, GeneratePassword, GenerateSalt } from "../utility";
+import {
+  GenerateOtp,
+  GeneratePassword,
+  GenerateSalt,
+  GenerateToken,
+  RequestOtp,
+} from "../utility";
 import { Customer } from "../models/Customer";
 
 /**-------------------- Signup -------------------- */
@@ -28,6 +34,13 @@ export const customerSignup = async (
 
   const { otp, expiry } = await GenerateOtp();
 
+  const existingUser = await Customer.findOne({ email: email });
+
+  if (existingUser !== null) {
+    return res
+      .status(409)
+      .json({ message: "This email is associated with the user" });
+  }
   const result = await Customer.create({
     email: email,
     password: customerPassword,
@@ -44,6 +57,17 @@ export const customerSignup = async (
   });
 
   if (result) {
+    await RequestOtp(otp, phone);
+
+    const token = GenerateToken({
+      _id: result._id,
+      email: result.email,
+      verified: result.verified,
+    });
+
+    res
+      .status(201)
+      .json({ token: token, verified: result.verified, email: result.email });
   }
 };
 
