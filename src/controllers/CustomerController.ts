@@ -83,7 +83,35 @@ export const customerVerify = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const { otp } = req.body;
+  const customer = req.user;
+
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      if (profile.otp === parseInt(otp) && profile.otp_expiry >= new Date()) {
+        profile.verified = true;
+
+        const verifiedCustomer = await profile.save();
+
+        const token = GenerateToken({
+          _id: verifiedCustomer._id,
+          email: verifiedCustomer.email,
+          verified: verifiedCustomer.verified,
+        });
+
+        return res.status(200).json({
+          token: token,
+          email: verifiedCustomer.email,
+          verified: verifiedCustomer.verified,
+        });
+      }
+      return res.status(400).json({ message: "Invalid otp entered!" });
+    }
+  }
+};
 
 /**-------------------- Request OTP -------------------- */
 export const requestOtp = async (

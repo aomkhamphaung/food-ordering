@@ -7,6 +7,7 @@ import {
   requestOtp,
   updateCustomerProfile,
 } from "../controllers/CustomerController";
+import { Authenticate } from "../middlewares";
 
 const router = express.Router();
 
@@ -15,6 +16,9 @@ router.post("/signup", customerSignup);
 
 /**-------------------- Login -------------------- */
 router.post("/login", customerLogin);
+
+// Middleware
+router.use(Authenticate);
 
 /**-------------------- Verify Account -------------------- */
 router.post("/verify", customerVerify);
