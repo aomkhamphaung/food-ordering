@@ -3,4 +3,4 @@ export const MONGO_URI =
 
 export const APP_SECRET = "APP_SECRET";
 
-export const PORT = process.env.PORT || 6000;
+export const PORT = process.env.PORT || 5000;

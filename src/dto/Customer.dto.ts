@@ -1,4 +1,4 @@
-import { IsEmail, Length, isEmail } from "class-validator";
+import { IsEmail, Length } from "class-validator";
 
 export class CreateCustomerInput {
   @IsEmail()
@@ -34,4 +34,9 @@ export interface CustomerPayload {
   _id: string;
   email: string;
   verified: boolean;
+}
+
+export class OrderInput {
+  _id: string;
+  unit: number;
 }

@@ -4,6 +4,7 @@ import {
   CreateCustomerInput,
   CustomerLoginInput,
   EditCustomerInput,
+  OrderInput,
 } from "../dto";
 import { validate } from "class-validator";
 import {
@@ -14,7 +15,7 @@ import {
   RequestOtp,
   ValidatePassword,
 } from "../utility";
-import { Customer } from "../models/Customer";
+import { Food, Customer, Order } from "../models";
 
 /**-------------------- Signup -------------------- */
 export const customerSignup = async (
@@ -59,6 +60,7 @@ export const customerSignup = async (
     verified: false,
     lat: 0,
     lng: 0,
+    orders: [],
   });
 
   if (result) {
@@ -235,3 +237,71 @@ export const updateCustomerProfile = async (
 
   return res.status(500).json({ message: "Error updating profile!" });
 };
+
+/**-------------------- Create Order -------------------- */
+export const createOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+
+  if (customer) {
+    const orderId = `${Math.floor(Math.random() * 99999) + 10000}`;
+
+    const profile = await Customer.findById(customer._id);
+    const cart = <[OrderInput]>req.body;
+
+    let cartItems = Array();
+    let netAmount = 0.0;
+
+    const foods = await Food.find()
+      .where("_id")
+      .in(cart.map((item) => item._id))
+      .exec();
+
+    foods.map((food) => {
+      cart.map(({ _id, unit }) => {
+        if (food._id === _id) {
+          netAmount += food.price * unit;
+          cartItems.push(food._id, unit);
+        }
+      });
+    });
+
+    if (cartItems) {
+      const currentOrder = await Order.create({
+        orderId: orderId,
+        items: cartItems,
+        totalAmount: netAmount,
+        orderDate: new Date(),
+        paymentMethod: "Visa Card",
+        paymentResponse: "",
+        orderStatus: "Pending",
+      });
+
+      if (currentOrder) {
+        profile?.orders.push(currentOrder);
+        const profileResponse = await profile?.save();
+
+        return res.status(201).json({ profileResponse, currentOrder });
+      }
+    }
+
+    return res.status(400).json({ message: "Error creating order!" });
+  }
+};
+
+/**-------------------- Get Orders -------------------- */
+export const getOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+/**-------------------- Get Order By Id -------------------- */
+export const getOrderById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
