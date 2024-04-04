@@ -36,6 +36,6 @@ router.patch("/profile", updateCustomerProfile);
 /**-------------------- Order -------------------- */
 router.post("/create-orders", createOrder);
 router.get("/orders", getOrders);
-router.get("/order:id", getOrderById);
+router.get("/order/:id", getOrderById);
 
 export { router as CustomerRoute };

@@ -284,7 +284,7 @@ export const createOrder = async (
 
       if (currentOrder) {
         profile?.orders.push(currentOrder);
-        const profileResponse = await profile?.save();
+        await profile?.save();
 
         return res.status(201).json(currentOrder);
       }
@@ -299,11 +299,33 @@ export const getOrders = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const customer = req.user;
+
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("orders");
+
+    if (profile) {
+      return res.status(200).json(profile);
+    }
+
+    return res.status(404).json("No Order Found!");
+  }
+};
 
 /**-------------------- Get Order By Id -------------------- */
 export const getOrderById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const orderId = req.params.id;
+
+  if (orderId) {
+    const order = await Order.findById(orderId).populate("items.food");
+
+    return res.status(200).json(order);
+  }
+
+  return res.status(404).json({ message: "No order found!" });
+};
