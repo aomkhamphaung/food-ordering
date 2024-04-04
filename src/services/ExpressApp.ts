@@ -5,7 +5,7 @@ import {
   AdminRoute,
   CustomerRoute,
   ShoppingRoute,
-  VandorRoute,
+  VendorRoute,
 } from "../routes";
 
 export default async (app: Application) => {
@@ -14,7 +14,7 @@ export default async (app: Application) => {
   app.use("/images", express.static(path.join(__dirname, "../", "images")));
 
   app.use("/admin", AdminRoute);
-  app.use("/vandor", VandorRoute);
+  app.use("/vendor", VendorRoute);
 
   app.use("/customer", CustomerRoute);
   app.use(ShoppingRoute);

@@ -9,7 +9,7 @@ import {
   getCartItems,
   getCustomerProfile,
   getOrderById,
-  getOrders,
+  getOrdersByCustomer,
   requestOtp,
   updateCustomerProfile,
 } from "../controllers/CustomerController";
@@ -43,7 +43,7 @@ router.delete("/cart", deleteCartItems);
 
 /**-------------------- Order -------------------- */
 router.post("/create-orders", createOrder);
-router.get("/orders", getOrders);
+router.get("/orders", getOrdersByCustomer);
 router.get("/order/:id", getOrderById);
 
 export { router as CustomerRoute };

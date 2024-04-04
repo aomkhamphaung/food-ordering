@@ -378,7 +378,7 @@ export const createOrder = async (
 };
 
 /**-------------------- Get Orders -------------------- */
-export const getOrders = async (
+export const getOrdersByCustomer = async (
   req: Request,
   res: Response,
   next: NextFunction

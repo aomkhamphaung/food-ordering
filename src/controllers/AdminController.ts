@@ -1,18 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateVandorInput } from "../dto";
-import { Vandor } from "../models";
+import { CreateVendorInput } from "../dto";
+import { Vendor } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
 
-export const FindVandor = async (id: string | undefined, email?: string) => {
+export const FindVendor = async (id: string | undefined, email?: string) => {
   if (email) {
-    return await Vandor.findOne({ email: email });
+    return await Vendor.findOne({ email: email });
   } else {
-    return await Vandor.findById(id);
+    return await Vendor.findById(id);
   }
 };
 
-/**-------------------- Create Vandor -------------------- */
-export const CreateVandor = async (
+/**-------------------- Create Vendor -------------------- */
+export const createVendor = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -26,20 +26,20 @@ export const CreateVandor = async (
     ownerName,
     email,
     password,
-  } = <CreateVandorInput>req.body;
+  } = <CreateVendorInput>req.body;
 
-  const existingVandor = await FindVandor("", email);
+  const existingVendor = await FindVendor("", email);
 
-  if (existingVandor !== null) {
+  if (existingVendor !== null) {
     return res
       .status(409)
-      .json({ message: "Vandor already exists with this email!" });
+      .json({ message: "Vendor already exists with this email!" });
   }
 
   const salt = await GenerateSalt();
   const userPassword = await GeneratePassword(password, salt);
 
-  const createdVandor = await Vandor.create({
+  const createdVendor = await Vendor.create({
     name: name,
     address: address,
     pincode: pincode,
@@ -55,36 +55,36 @@ export const CreateVandor = async (
     foods: [],
   });
 
-  return res.status(200).json(createdVandor);
+  return res.status(200).json(createdVendor);
 };
 
-/**-------------------- Get All Vandors -------------------- */
-export const GetVandors = async (
+/**-------------------- Get All Vendors -------------------- */
+export const getVendors = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const vandors = await Vandor.find();
+  const vendors = await Vendor.find();
 
-  if (vandors !== null) {
-    return res.status(200).json(vandors);
+  if (vendors !== null) {
+    return res.status(200).json(vendors);
   }
 
-  return res.status(404).json({ message: "No vandor data found!" });
+  return res.status(404).json({ message: "No vendor data found!" });
 };
 
-/**-------------------- Get Vandor by Id -------------------- */
-export const GetVandorById = async (
+/**-------------------- Get Vendor by Id -------------------- */
+export const getVendorById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const vandorId = req.params.id;
-  const vandor = await FindVandor(vandorId);
+  const vendorId = req.params.id;
+  const vendor = await FindVendor(vendorId);
 
-  if (vandor !== null) {
-    return res.status(200).json(vandor);
+  if (vendor !== null) {
+    return res.status(200).json(vendor);
   }
 
-  return res.status(404).json({ message: "No vandor data found!" });
+  return res.status(404).json({ message: "No vendor data found!" });
 };
