@@ -16,6 +16,7 @@ import {
   ValidatePassword,
 } from "../utility";
 import { Food, Customer, Order } from "../models";
+import mongoose from "mongoose";
 
 /**-------------------- Signup -------------------- */
 export const customerSignup = async (
@@ -247,7 +248,7 @@ export const createOrder = async (
   const customer = req.user;
 
   if (customer) {
-    const orderId = `${Math.floor(Math.random() * 99999) + 10000}`;
+    const orderId = `${Math.floor(Math.random() * 99999) + 1000}`;
 
     const profile = await Customer.findById(customer._id);
     const cart = <[OrderInput]>req.body;
@@ -262,9 +263,10 @@ export const createOrder = async (
 
     foods.map((food) => {
       cart.map(({ _id, unit }) => {
-        if (food._id === _id) {
+        const itemId = new mongoose.Types.ObjectId(_id);
+        if (food._id.equals(itemId)) {
           netAmount += food.price * unit;
-          cartItems.push(food._id, unit);
+          cartItems.push({ food, unit });
         }
       });
     });
@@ -284,7 +286,7 @@ export const createOrder = async (
         profile?.orders.push(currentOrder);
         const profileResponse = await profile?.save();
 
-        return res.status(201).json({ profileResponse, currentOrder });
+        return res.status(201).json(currentOrder);
       }
     }
 
