@@ -4,13 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch-path ./src --no-warnings -r ts-node/register ./src/index.ts"
+    "dev": "node --watch-path ./src --no-warnings -r ts-node/register ./src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p .",
+    "postinstall": "npm run build"
+  },
+  "engines": {
+    "node": "20.11.0",
+    "npm": "10.2.4"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/node": "^20.12.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   },
@@ -21,7 +29,6 @@
     "@types/mongoose": "^5.11.97",
     "@types/multer": "^1.4.11",
     "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cors": "^2.8.5",
