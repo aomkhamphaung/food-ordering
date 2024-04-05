@@ -36,7 +36,7 @@ const DiscountSchema = new Schema(
     promoType: { type: String, require: true },
     bank: [{ type: String }],
     bins: [{ type: Number }],
-    pinCode: { type: String, require: true },
+    pincode: { type: String, require: true },
     isActive: { type: Boolean },
   },
   {
