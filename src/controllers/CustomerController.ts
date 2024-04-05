@@ -369,8 +369,8 @@ export const createOrder = async (
         orderStatus: "Pending",
         remarks: "",
         deliveryId: "",
-        appliedOffers: false,
-        offerId: null,
+        appliedDiscounts: false,
+        discountId: null,
         readyTime: 45,
       });
 

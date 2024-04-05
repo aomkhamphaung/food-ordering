@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-
 import {
   vendorLogin,
   createFood,
@@ -12,6 +11,9 @@ import {
   getOrders,
   processOrder,
   getOrderDetails,
+  getDiscounts,
+  addDiscount,
+  updateDiscount,
 } from "../controllers";
 import { Authenticate } from "../middlewares";
 
@@ -46,6 +48,11 @@ router.get("/foods", getFoods);
 router.get("/orders", getOrders);
 router.put("/order/:id/process", processOrder);
 router.get("/order/:id", getOrderDetails);
+
+/**-------------------- Discounts -------------------- */
+router.get("/discounts", getDiscounts);
+router.post("/discount", addDiscount);
+router.put("/discount/:id", updateDiscount);
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.send({ message: "Vendor Route" });

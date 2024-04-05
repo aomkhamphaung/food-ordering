@@ -11,30 +11,30 @@ export interface OrderDoc extends Document {
   orderStatus: string;
   remarks: string;
   deliveryId: string;
-  appliedOffers: boolean;
-  offerId: string;
+  appliedDiscounts: boolean;
+  discountId: string;
   readyTime: number;
 }
 
 const OrderSchema = new Schema(
   {
     orderId: { type: String },
-    vendorId: { type: String, required: true },
+    vendorId: { type: String, require: true },
     items: [
       {
-        food: { type: Schema.Types.ObjectId, ref: "food", required: true },
-        unit: { type: Number, required: true },
+        food: { type: Schema.Types.ObjectId, ref: "food", require: true },
+        unit: { type: Number, require: true },
       },
     ],
-    totalAmount: { type: Number, required: true },
+    totalAmount: { type: Number, require: true },
     orderDate: { type: Date },
     paymentMethod: { type: String },
     paymentResponse: { type: String },
     orderStatus: { type: String },
     remarks: { type: String },
     deliveryId: { type: String },
-    appliedOffer: { type: Boolean },
-    offerId: { type: String },
+    appliedDiscount: { type: Boolean },
+    discountId: { type: String },
     readyTime: { type: Number },
   },
   {
