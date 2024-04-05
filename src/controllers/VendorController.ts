@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CreateFoodInput, EditVendorInput, VendorLoginInput } from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
-import { Food, Vendor } from "../models";
+import { Food, Order, Vendor } from "../models";
 
 /**-------------------- Vendor Login -------------------- */
 export const vendorLogin = async (
@@ -160,7 +160,6 @@ export const createFood = async (
 
       vendor.foods.push(createdFood);
       const result = await vendor.save();
-      console.log(result);
       return res.status(200).json(result);
     }
   }
@@ -192,18 +191,65 @@ export const getOrders = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const user = req.user;
+
+  if (user) {
+    const orders = await Order.find({ vendorId: user._id }).populate(
+      "items.food"
+    );
+
+    if (orders !== null) {
+      return res.status(200).json(orders);
+    }
+  }
+
+  return res.status(404).json({ message: "No order found!" });
+};
 
 /**-------------------- Process Order -------------------- */
 export const processOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const orderId = req.params.id;
+
+  const { status, remarks, time } = req.body;
+
+  if (orderId) {
+    const order = await Order.findById(orderId).populate("items.food");
+
+    if (order != null) {
+      order.orderStatus = status;
+      order.remarks = remarks;
+      if (time) {
+        order.readyTime = time;
+      }
+
+      const result = await order.save();
+      return res.status(200).json(result);
+    }
+  }
+
+  return res.status(400).json({ message: "Unable to process order!" });
+};
 
 /**-------------------- Get Order Details -------------------- */
 export const getOrderDetails = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const orderId = req.params.id;
+
+  if (orderId) {
+    const order = await Order.findById(orderId).populate("items.food");
+
+    if (order !== null) {
+      return res.status(200).json(order);
+    }
+  }
+
+  return res.status(404).json({ message: "No order found!" });
+};

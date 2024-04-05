@@ -338,16 +338,19 @@ export const createOrder = async (
 
     let cartItems = Array();
     let netAmount = 0.0;
+    let vendorId;
 
     const foods = await Food.find()
       .where("_id")
       .in(cart.map((item) => item._id))
       .exec();
+    console.log(foods);
 
     foods.map((food) => {
       cart.map(({ _id, unit }) => {
         const itemId = new mongoose.Types.ObjectId(_id);
         if (food._id.equals(itemId)) {
+          vendorId = food.vendorId;
           netAmount += food.price * unit;
           cartItems.push({ food, unit });
         }
@@ -356,6 +359,7 @@ export const createOrder = async (
 
     if (cartItems) {
       const currentOrder = await Order.create({
+        vendorId: vendorId,
         orderId: orderId,
         items: cartItems,
         totalAmount: netAmount,
@@ -363,13 +367,21 @@ export const createOrder = async (
         paymentMethod: "Visa Card",
         paymentResponse: "",
         orderStatus: "Pending",
+        remarks: "",
+        deliveryId: "",
+        appliedOffers: false,
+        offerId: null,
+        readyTime: 45,
       });
 
-      if (currentOrder) {
-        profile?.orders.push(currentOrder);
-        await profile?.save();
+      if (profile !== null) {
+        profile.cart = [] as any;
+        if (currentOrder) {
+          profile.orders.push(currentOrder);
+          await profile.save();
 
-        return res.status(201).json(currentOrder);
+          return res.status(201).json(currentOrder);
+        }
       }
     }
 
