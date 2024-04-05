@@ -12,6 +12,7 @@ import {
   getOrdersByCustomer,
   requestOtp,
   updateCustomerProfile,
+  verifyDiscount,
 } from "../controllers/CustomerController";
 import { Authenticate } from "../middlewares";
 
@@ -40,6 +41,9 @@ router.patch("/profile", updateCustomerProfile);
 router.post("/cart", addToCart);
 router.get("/cart", getCartItems);
 router.delete("/cart", deleteCartItems);
+
+/**-------------------- Apply Discount -------------------- */
+router.get("/discount/verify/:id", verifyDiscount);
 
 /**-------------------- Order -------------------- */
 router.post("/create-orders", createOrder);

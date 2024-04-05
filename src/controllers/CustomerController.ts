@@ -15,7 +15,7 @@ import {
   RequestOtp,
   ValidatePassword,
 } from "../utility";
-import { Food, Customer, Order } from "../models";
+import { Food, Customer, Order, Discount } from "../models";
 import mongoose from "mongoose";
 
 /**-------------------- Signup -------------------- */
@@ -320,6 +320,31 @@ export const deleteCartItems = async (
     }
   }
   return res.status(404).json({ message: "Cart is already empty!" });
+};
+
+/**-------------------- Verify Discount -------------------- */
+export const verifyDiscount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const discountId = req.params.id;
+  const customer = req.user;
+
+  if (customer) {
+    const discount = await Discount.findById(discountId);
+    if (discount) {
+      if (discount.discountType === "USER") {
+      } else {
+        if (discount.isActive) {
+          return res
+            .status(200)
+            .json({ message: "Valid discount!", discount: discount });
+        }
+      }
+    }
+  }
+  return res.status(400).json({ message: "Invalid Discount!" });
 };
 
 /**-------------------- Create Order -------------------- */
