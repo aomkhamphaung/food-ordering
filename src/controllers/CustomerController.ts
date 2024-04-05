@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import {
   CreateCustomerInput,
@@ -15,7 +15,7 @@ import {
   RequestOtp,
   ValidatePassword,
 } from "../utility";
-import { Food, Customer, Order, Discount } from "../models";
+import { Food, Customer, Order, Discount, Transaction } from "../models";
 import mongoose from "mongoose";
 
 /**-------------------- Signup -------------------- */
@@ -354,11 +354,11 @@ export const createOrder = async (
   next: NextFunction
 ) => {
   const customer = req.user;
-
   if (customer) {
     const orderId = `${Math.floor(Math.random() * 99999) + 1000}`;
 
     const profile = await Customer.findById(customer._id);
+
     const cart = <[OrderInput]>req.body;
 
     let cartItems = Array();
@@ -369,7 +369,6 @@ export const createOrder = async (
       .where("_id")
       .in(cart.map((item) => item._id))
       .exec();
-    console.log(foods);
 
     foods.map((food) => {
       cart.map(({ _id, unit }) => {
@@ -399,19 +398,19 @@ export const createOrder = async (
         readyTime: 45,
       });
 
-      if (profile !== null) {
+      if (profile != null) {
         profile.cart = [] as any;
-        if (currentOrder) {
-          profile.orders.push(currentOrder);
-          await profile.save();
+      }
 
-          return res.status(201).json(currentOrder);
-        }
+      if (currentOrder) {
+        profile?.orders.push(currentOrder);
+        await profile?.save();
+
+        return res.status(201).json(currentOrder);
       }
     }
-
-    return res.status(400).json({ message: "Error creating order!" });
   }
+  return res.status(400).json({ message: "Error creating order!" });
 };
 
 /**-------------------- Get Orders -------------------- */
@@ -421,16 +420,14 @@ export const getOrdersByCustomer = async (
   next: NextFunction
 ) => {
   const customer = req.user;
-
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("orders");
 
     if (profile) {
       return res.status(200).json(profile);
     }
-
-    return res.status(404).json("No Order Found!");
   }
+  return res.status(404).json("No Order Found!");
 };
 
 /**-------------------- Get Order By Id -------------------- */
@@ -448,4 +445,39 @@ export const getOrderById = async (
   }
 
   return res.status(404).json({ message: "No order found!" });
+};
+
+/**-------------------- Create Payment -------------------- */
+export const createPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  const { amount, paymentMethod, discountId } = req.body;
+
+  let totalAmount = Number(amount);
+
+  if (discountId) {
+    const discount = await Discount.findById(discountId);
+
+    if (discount) {
+      if (discount.isActive) {
+        totalAmount = totalAmount - discount.discountAmount;
+      }
+    }
+  }
+
+  const transaction = await Transaction.create({
+    customer: customer?._id,
+    vendorId: "",
+    orderId: "",
+    orderValue: totalAmount,
+    discountUsed: discountId || "NA",
+    status: "OPEN",
+    paymentMethod: paymentMethod,
+    paymentResponse: "Payment in progress",
+  });
+
+  return res.status(200).json(transaction);
 };
