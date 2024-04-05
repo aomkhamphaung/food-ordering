@@ -1,16 +1,16 @@
-import express, {Request, Response, NextFunction} from 'express';
-import { CreateVandor, GetVandorById, GetVandors } from '../controllers';
+import express, { Request, Response, NextFunction } from "express";
+import { createVendor, getVendorById, getVendors } from "../controllers";
 
 const router = express.Router();
 
-router.post('/vandor', CreateVandor);
+router.post("/vendor", createVendor);
 
-router.get('/vandors', GetVandors);
+router.get("/vendors", getVendors);
 
-router.get('/vandor/:id', GetVandorById);
+router.get("/vendor/:id", getVendorById);
 
-router.get('/', (req: Request, res: Response, next: NextFunction) => {
-    res.json({message : "Admin Route"});
-})
+router.get("/", (req: Request, res: Response, next: NextFunction) => {
+  res.json({ message: "Admin Route" });
+});
 
-export {router as AdminRoute};
+export { router as AdminRoute };

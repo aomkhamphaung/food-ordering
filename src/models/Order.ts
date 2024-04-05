@@ -2,17 +2,24 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface OrderDoc extends Document {
   orderId: string;
+  vendorId: string;
   items: [any];
   totalAmount: number;
   orderDate: Date;
   paymentMethod: string;
   paymentResponse: string;
   orderStatus: string;
+  remarks: string;
+  deliveryId: string;
+  appliedOffers: boolean;
+  offerId: string;
+  readyTime: number;
 }
 
 const OrderSchema = new Schema(
   {
     orderId: { type: String },
+    vendorId: { type: String, required: true },
     items: [
       {
         food: { type: Schema.Types.ObjectId, ref: "food", required: true },
@@ -24,6 +31,11 @@ const OrderSchema = new Schema(
     paymentMethod: { type: String },
     paymentResponse: { type: String },
     orderStatus: { type: String },
+    remarks: { type: String },
+    deliveryId: { type: String },
+    appliedOffer: { type: Boolean },
+    offerId: { type: String },
+    readyTime: { type: Number },
   },
   {
     toJSON: {

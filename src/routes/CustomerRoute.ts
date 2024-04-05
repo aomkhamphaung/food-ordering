@@ -1,12 +1,15 @@
 import express, { Request, Response, NextFunction } from "express";
 import {
+  addToCart,
   createOrder,
   customerLogin,
   customerSignup,
   customerVerify,
+  deleteCartItems,
+  getCartItems,
   getCustomerProfile,
   getOrderById,
-  getOrders,
+  getOrdersByCustomer,
   requestOtp,
   updateCustomerProfile,
 } from "../controllers/CustomerController";
@@ -33,9 +36,14 @@ router.get("/otp", requestOtp);
 router.get("/profile", getCustomerProfile);
 router.patch("/profile", updateCustomerProfile);
 
+/**-------------------- Cart -------------------- */
+router.post("/cart", addToCart);
+router.get("/cart", getCartItems);
+router.delete("/cart", deleteCartItems);
+
 /**-------------------- Order -------------------- */
 router.post("/create-orders", createOrder);
-router.get("/orders", getOrders);
+router.get("/orders", getOrdersByCustomer);
 router.get("/order/:id", getOrderById);
 
 export { router as CustomerRoute };

@@ -1,4 +1,4 @@
-import { VandorPayload } from "./Vandor.dto";
+import { VendorPayload } from "./Vendor.dto";
 import { CustomerPayload } from "./Customer.dto";
 
-export type AuthPayload = VandorPayload | CustomerPayload;
+export type AuthPayload = VendorPayload | CustomerPayload;
