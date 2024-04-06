@@ -16,7 +16,14 @@ import {
   RequestOtp,
   ValidatePassword,
 } from "../utility";
-import { Food, Customer, Order, Discount, Transaction } from "../models";
+import {
+  Food,
+  Customer,
+  Order,
+  Discount,
+  Transaction,
+  Vendor,
+} from "../models";
 import mongoose from "mongoose";
 
 /**-------------------- Signup -------------------- */
@@ -381,7 +388,22 @@ export const createPayment = async (
   return res.status(200).json(transaction);
 };
 
+/**-------------------- Delivery Notification -------------------- */
+
+// assign order
+const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
+  const vendor = await Vendor.findById(vendorId);
+
+  if (vendor) {
+    const areaCode = vendor.pincode;
+    const vendorLat = vendor.lat;
+    const vendorLng = vendor.lng;
+  }
+};
+
 /**-------------------- Create Order -------------------- */
+
+// validate transaction
 const validateTransaction = async (transactionId: string) => {
   const currentTransaction = await Transaction.findById(transactionId);
   if (currentTransaction) {
@@ -456,6 +478,8 @@ export const createOrder = async (
       currentTransaction!.orderId = orderId;
       currentTransaction!.status = "CONFIRMED";
       await currentTransaction?.save();
+
+      assignOrderForDelivery(currentOrder._id, vendorId!);
 
       await profile!.save();
 

@@ -53,6 +53,8 @@ export const createVendor = async (
     serviceAvailable: false,
     coverImages: [],
     foods: [],
+    lat: 0,
+    lng: 0,
   });
 
   return res.status(200).json(createdVendor);
