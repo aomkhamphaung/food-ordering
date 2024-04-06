@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import {
+  CartItem,
   CreateCustomerInput,
   CustomerLoginInput,
   EditCustomerInput,
@@ -250,7 +251,7 @@ export const addToCart = async (
     const profile = await Customer.findById(customer._id).populate("cart.food");
     let cartItems = Array();
 
-    const { _id, unit } = <OrderInput>req.body;
+    const { _id, unit } = <CartItem>req.body;
     const food = await Food.findById(_id);
     if (food) {
       if (profile !== null) {
@@ -312,12 +313,10 @@ export const deleteCartItems = async (
   const customer = req.user;
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("cart.food");
-    if (profile !== null) {
-      profile.cart = [] as any;
+    profile!.cart = [] as any;
 
-      const cartResult = await profile.save();
-      return res.status(200).json(cartResult);
-    }
+    const cartResult = await profile!.save();
+    return res.status(200).json(cartResult);
   }
   return res.status(404).json({ message: "Cart is already empty!" });
 };
@@ -347,19 +346,74 @@ export const verifyDiscount = async (
   return res.status(400).json({ message: "Invalid Discount!" });
 };
 
+/**-------------------- Create Payment -------------------- */
+export const createPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  const { amount, paymentMethod, discountId } = req.body;
+
+  let totalAmount = Number(amount);
+
+  if (discountId) {
+    const discount = await Discount.findById(discountId);
+
+    if (discount) {
+      if (discount.isActive) {
+        totalAmount = totalAmount - discount.discountAmount;
+      }
+    }
+  }
+
+  const transaction = await Transaction.create({
+    customer: customer?._id,
+    vendorId: "",
+    orderId: "",
+    orderValue: totalAmount,
+    discountUsed: discountId || "NA",
+    status: "OPEN",
+    paymentMethod: paymentMethod,
+    paymentResponse: "Payment in progress",
+  });
+
+  return res.status(200).json(transaction);
+};
+
 /**-------------------- Create Order -------------------- */
+const validateTransaction = async (transactionId: string) => {
+  const currentTransaction = await Transaction.findById(transactionId);
+  if (currentTransaction) {
+    if (currentTransaction.status.toLowerCase() !== "failed") {
+      return { status: true, currentTransaction };
+    }
+  }
+
+  return { status: false, currentTransaction };
+};
+
 export const createOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const customer = req.user;
+  const { transaction_id, amount, items } = <OrderInput>req.body;
+
   if (customer) {
+    // validate transaction
+    const { status, currentTransaction } = await validateTransaction(
+      transaction_id
+    );
+
+    if (!status) {
+      return res.status(404).json({ message: "Error while creating order!" });
+    }
+
     const orderId = `${Math.floor(Math.random() * 99999) + 1000}`;
 
     const profile = await Customer.findById(customer._id);
-
-    const cart = <[OrderInput]>req.body;
 
     let cartItems = Array();
     let netAmount = 0.0;
@@ -367,11 +421,11 @@ export const createOrder = async (
 
     const foods = await Food.find()
       .where("_id")
-      .in(cart.map((item) => item._id))
+      .in(items.map((item) => item._id))
       .exec();
 
     foods.map((food) => {
-      cart.map(({ _id, unit }) => {
+      items.map(({ _id, unit }) => {
         const itemId = new mongoose.Types.ObjectId(_id);
         if (food._id.equals(itemId)) {
           vendorId = food.vendorId;
@@ -387,27 +441,25 @@ export const createOrder = async (
         orderId: orderId,
         items: cartItems,
         totalAmount: netAmount,
+        paidAmount: amount,
         orderDate: new Date(),
-        paymentMethod: "Visa Card",
-        paymentResponse: "",
         orderStatus: "Pending",
         remarks: "",
         deliveryId: "",
-        appliedDiscounts: false,
-        discountId: null,
         readyTime: 45,
       });
 
-      if (profile != null) {
-        profile.cart = [] as any;
-      }
+      profile!.cart = [] as any;
+      profile!.orders.push(currentOrder);
 
-      if (currentOrder) {
-        profile?.orders.push(currentOrder);
-        await profile?.save();
+      currentTransaction!.vendorId = vendorId!;
+      currentTransaction!.orderId = orderId;
+      currentTransaction!.status = "CONFIRMED";
+      await currentTransaction?.save();
 
-        return res.status(201).json(currentOrder);
-      }
+      await profile!.save();
+
+      return res.status(201).json(currentOrder);
     }
   }
   return res.status(400).json({ message: "Error creating order!" });
@@ -445,39 +497,4 @@ export const getOrderById = async (
   }
 
   return res.status(404).json({ message: "No order found!" });
-};
-
-/**-------------------- Create Payment -------------------- */
-export const createPayment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const customer = req.user;
-  const { amount, paymentMethod, discountId } = req.body;
-
-  let totalAmount = Number(amount);
-
-  if (discountId) {
-    const discount = await Discount.findById(discountId);
-
-    if (discount) {
-      if (discount.isActive) {
-        totalAmount = totalAmount - discount.discountAmount;
-      }
-    }
-  }
-
-  const transaction = await Transaction.create({
-    customer: customer?._id,
-    vendorId: "",
-    orderId: "",
-    orderValue: totalAmount,
-    discountUsed: discountId || "NA",
-    status: "OPEN",
-    paymentMethod: paymentMethod,
-    paymentResponse: "Payment in progress",
-  });
-
-  return res.status(200).json(transaction);
 };

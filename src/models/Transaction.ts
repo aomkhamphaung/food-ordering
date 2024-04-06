@@ -15,6 +15,7 @@ const TransactionSchema = new Schema(
   {
     customer: { type: String },
     vendorId: { type: String },
+    orderId: { type: String },
     orderValue: { type: Number },
     discountUsed: { type: String },
     status: { type: String },
