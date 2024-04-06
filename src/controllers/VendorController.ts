@@ -1,8 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateFoodInput, EditVendorInput, VendorLoginInput } from "../dto";
+import {
+  CreateDiscountInput,
+  CreateFoodInput,
+  EditVendorInput,
+  VendorLoginInput,
+} from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateToken, ValidatePassword } from "../utility";
 import { Food, Order, Vendor } from "../models";
+import { Discount } from "../models/Discount";
 
 /**-------------------- Vendor Login -------------------- */
 export const vendorLogin = async (
@@ -88,12 +94,19 @@ export const updateVendorService = async (
   next: NextFunction
 ) => {
   const user = req.user;
+  const { lat, lng } = req.body;
 
   if (user) {
     const existingVendor = await FindVendor(user._id);
 
     if (existingVendor !== null) {
       existingVendor.serviceAvailable = !existingVendor.serviceAvailable;
+
+      if (lat && lng) {
+        existingVendor.lat = lat;
+        existingVendor.lng = lng;
+      }
+
       const savedResult = await existingVendor.save();
       return res.status(200).json(savedResult);
     }
@@ -252,4 +265,137 @@ export const getOrderDetails = async (
   }
 
   return res.status(404).json({ message: "No order found!" });
+};
+
+/**-------------------- Get Discounts -------------------- */
+export const getDiscounts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+
+  if (user) {
+    const discounts = await Discount.find().populate("vendors");
+
+    let currentDiscounts = Array();
+
+    if (discounts) {
+      discounts.map((discount) => {
+        if (discount.vendors) {
+          discount.vendors.map((vendor) => {
+            if (vendor._id.toString() === user._id) {
+              currentDiscounts.push(discount);
+            }
+          });
+        }
+
+        if (discount.discountType === "GENERIC") {
+          currentDiscounts.push(discount);
+        }
+      });
+    }
+    return res.status(200).json(currentDiscounts);
+  }
+  return res.status(400).json("No discount data available!");
+};
+
+/**-------------------- Add Discount -------------------- */
+export const addDiscount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+
+  if (user) {
+    const {
+      title,
+      description,
+      minVal,
+      discountAmount,
+      pincode,
+      promoCode,
+      promoType,
+      startDate,
+      endDate,
+      bank,
+      bins,
+      isActive,
+    } = <CreateDiscountInput>req.body;
+
+    const vendor = await FindVendor(user._id);
+    if (vendor) {
+      const discount = await Discount.create({
+        title,
+        description,
+        minVal,
+        discountAmount,
+        pincode,
+        promoCode,
+        promoType,
+        startDate,
+        endDate,
+        bank,
+        bins,
+        isActive,
+        vendors: [vendor],
+      });
+
+      return res.status(200).json(discount);
+    }
+  }
+  return res.status(400).json({ message: "Unable to add discount!" });
+};
+
+/**-------------------- Update Discount -------------------- */
+export const updateDiscount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  const discountId = req.params.id;
+
+  if (user) {
+    const {
+      title,
+      description,
+      minVal,
+      discountAmount,
+      pincode,
+      promoCode,
+      promoType,
+      startDate,
+      endDate,
+      bank,
+      bins,
+      isActive,
+    } = <CreateDiscountInput>req.body;
+
+    const discount = await Discount.findById(discountId);
+
+    if (discount) {
+      const vendor = await FindVendor(user._id);
+      if (vendor) {
+        (discount.title = title),
+          (discount.description = description),
+          (discount.minVal = minVal),
+          (discount.discountAmount = discountAmount),
+          (discount.pincode = pincode),
+          (discount.promoCode = promoCode),
+          (discount.promoType = promoType),
+          (discount.startDate = startDate),
+          (discount.endDate = endDate),
+          (discount.bank = bank),
+          (discount.bins = bins),
+          (discount.isActive = isActive);
+
+        const updatedDiscount = await discount.save();
+
+        return res.status(200).json(updatedDiscount);
+      }
+    }
+  }
+  return res.status(400).json({ message: "Unable to add discount!" });
 };

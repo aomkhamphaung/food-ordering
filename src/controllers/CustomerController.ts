@@ -1,6 +1,7 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import {
+  CartItem,
   CreateCustomerInput,
   CustomerLoginInput,
   EditCustomerInput,
@@ -15,7 +16,14 @@ import {
   RequestOtp,
   ValidatePassword,
 } from "../utility";
-import { Food, Customer, Order } from "../models";
+import {
+  Food,
+  Customer,
+  Order,
+  Discount,
+  Transaction,
+  Vendor,
+} from "../models";
 import mongoose from "mongoose";
 
 /**-------------------- Signup -------------------- */
@@ -250,7 +258,7 @@ export const addToCart = async (
     const profile = await Customer.findById(customer._id).populate("cart.food");
     let cartItems = Array();
 
-    const { _id, unit } = <OrderInput>req.body;
+    const { _id, unit } = <CartItem>req.body;
     const food = await Food.findById(_id);
     if (food) {
       if (profile !== null) {
@@ -312,29 +320,122 @@ export const deleteCartItems = async (
   const customer = req.user;
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("cart.food");
-    if (profile !== null) {
-      profile.cart = [] as any;
+    profile!.cart = [] as any;
 
-      const cartResult = await profile.save();
-      return res.status(200).json(cartResult);
-    }
+    const cartResult = await profile!.save();
+    return res.status(200).json(cartResult);
   }
   return res.status(404).json({ message: "Cart is already empty!" });
 };
 
+/**-------------------- Verify Discount -------------------- */
+export const verifyDiscount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const discountId = req.params.id;
+  const customer = req.user;
+
+  if (customer) {
+    const discount = await Discount.findById(discountId);
+    if (discount) {
+      if (discount.discountType === "USER") {
+      } else {
+        if (discount.isActive) {
+          return res
+            .status(200)
+            .json({ message: "Valid discount!", discount: discount });
+        }
+      }
+    }
+  }
+  return res.status(400).json({ message: "Invalid Discount!" });
+};
+
+/**-------------------- Create Payment -------------------- */
+export const createPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  const { amount, paymentMethod, discountId } = req.body;
+
+  let totalAmount = Number(amount);
+
+  if (discountId) {
+    const discount = await Discount.findById(discountId);
+
+    if (discount) {
+      if (discount.isActive) {
+        totalAmount = totalAmount - discount.discountAmount;
+      }
+    }
+  }
+
+  const transaction = await Transaction.create({
+    customer: customer?._id,
+    vendorId: "",
+    orderId: "",
+    orderValue: totalAmount,
+    discountUsed: discountId || "NA",
+    status: "OPEN",
+    paymentMethod: paymentMethod,
+    paymentResponse: "Payment in progress",
+  });
+
+  return res.status(200).json(transaction);
+};
+
+/**-------------------- Delivery Notification -------------------- */
+
+// assign order
+const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
+  const vendor = await Vendor.findById(vendorId);
+
+  if (vendor) {
+    const areaCode = vendor.pincode;
+    const vendorLat = vendor.lat;
+    const vendorLng = vendor.lng;
+  }
+};
+
 /**-------------------- Create Order -------------------- */
+
+// validate transaction
+const validateTransaction = async (transactionId: string) => {
+  const currentTransaction = await Transaction.findById(transactionId);
+  if (currentTransaction) {
+    if (currentTransaction.status.toLowerCase() !== "failed") {
+      return { status: true, currentTransaction };
+    }
+  }
+
+  return { status: false, currentTransaction };
+};
+
 export const createOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   const customer = req.user;
+  const { transaction_id, amount, items } = <OrderInput>req.body;
 
   if (customer) {
+    // validate transaction
+    const { status, currentTransaction } = await validateTransaction(
+      transaction_id
+    );
+
+    if (!status) {
+      return res.status(404).json({ message: "Error while creating order!" });
+    }
+
     const orderId = `${Math.floor(Math.random() * 99999) + 1000}`;
 
     const profile = await Customer.findById(customer._id);
-    const cart = <[OrderInput]>req.body;
 
     let cartItems = Array();
     let netAmount = 0.0;
@@ -342,12 +443,11 @@ export const createOrder = async (
 
     const foods = await Food.find()
       .where("_id")
-      .in(cart.map((item) => item._id))
+      .in(items.map((item) => item._id))
       .exec();
-    console.log(foods);
 
     foods.map((food) => {
-      cart.map(({ _id, unit }) => {
+      items.map(({ _id, unit }) => {
         const itemId = new mongoose.Types.ObjectId(_id);
         if (food._id.equals(itemId)) {
           vendorId = food.vendorId;
@@ -363,30 +463,30 @@ export const createOrder = async (
         orderId: orderId,
         items: cartItems,
         totalAmount: netAmount,
+        paidAmount: amount,
         orderDate: new Date(),
-        paymentMethod: "Visa Card",
-        paymentResponse: "",
         orderStatus: "Pending",
         remarks: "",
         deliveryId: "",
-        appliedOffers: false,
-        offerId: null,
         readyTime: 45,
       });
 
-      if (profile !== null) {
-        profile.cart = [] as any;
-        if (currentOrder) {
-          profile.orders.push(currentOrder);
-          await profile.save();
+      profile!.cart = [] as any;
+      profile!.orders.push(currentOrder);
 
-          return res.status(201).json(currentOrder);
-        }
-      }
+      currentTransaction!.vendorId = vendorId!;
+      currentTransaction!.orderId = orderId;
+      currentTransaction!.status = "CONFIRMED";
+      await currentTransaction?.save();
+
+      assignOrderForDelivery(currentOrder._id, vendorId!);
+
+      await profile!.save();
+
+      return res.status(201).json(currentOrder);
     }
-
-    return res.status(400).json({ message: "Error creating order!" });
   }
+  return res.status(400).json({ message: "Error creating order!" });
 };
 
 /**-------------------- Get Orders -------------------- */
@@ -396,16 +496,14 @@ export const getOrdersByCustomer = async (
   next: NextFunction
 ) => {
   const customer = req.user;
-
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("orders");
 
     if (profile) {
       return res.status(200).json(profile);
     }
-
-    return res.status(404).json("No Order Found!");
   }
+  return res.status(404).json("No Order Found!");
 };
 
 /**-------------------- Get Order By Id -------------------- */

@@ -15,12 +15,12 @@ export interface FoodDoc extends Document {
 const foodSchema = new Schema(
   {
     vendorId: { type: String },
-    name: { type: String, required: true },
-    description: { type: String, required: true },
+    name: { type: String, require: true },
+    description: { type: String, require: true },
     category: { type: String },
-    foodType: { type: String, required: true },
+    foodType: { type: String, require: true },
     readyTime: { type: Number },
-    price: { type: Number, required: true },
+    price: { type: Number, require: true },
     rating: { type: Number },
     images: { type: [String] },
   },

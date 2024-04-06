@@ -1,7 +1,8 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import {
   addToCart,
   createOrder,
+  createPayment,
   customerLogin,
   customerSignup,
   customerVerify,
@@ -12,6 +13,7 @@ import {
   getOrdersByCustomer,
   requestOtp,
   updateCustomerProfile,
+  verifyDiscount,
 } from "../controllers/CustomerController";
 import { Authenticate } from "../middlewares";
 
@@ -40,6 +42,12 @@ router.patch("/profile", updateCustomerProfile);
 router.post("/cart", addToCart);
 router.get("/cart", getCartItems);
 router.delete("/cart", deleteCartItems);
+
+/**-------------------- Apply Discount -------------------- */
+router.get("/discount/verify/:id", verifyDiscount);
+
+/**-------------------- Payment -------------------- */
+router.post("/create-payment", createPayment);
 
 /**-------------------- Order -------------------- */
 router.post("/create-orders", createOrder);

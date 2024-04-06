@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { Vendor, FoodDoc } from "../models";
+import { Vendor, FoodDoc, Discount } from "../models";
 
 /**-------------------- Food Availability -------------------- */
 export const GetFoodAvaility = async (
@@ -110,4 +110,20 @@ export const getRestaurantById = async (
   }
 
   res.status(404).json({ message: "No Data Found!" });
+};
+
+/**-------------------- Find Available Discounts -------------------- */
+export const findDiscount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const pincode = req.params.pincode;
+
+  const discount = await Discount.find({ pincode: pincode, isActive: true });
+  if (discount) {
+    return res.status(200).json(discount);
+  }
+
+  return res.status(400).json({ message: "No discount data found!" });
 };

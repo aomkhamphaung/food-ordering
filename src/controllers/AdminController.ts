@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
-import { Vendor } from "../models";
+import { Transaction, Vendor } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
@@ -53,6 +53,8 @@ export const createVendor = async (
     serviceAvailable: false,
     coverImages: [],
     foods: [],
+    lat: 0,
+    lng: 0,
   });
 
   return res.status(200).json(createdVendor);
@@ -87,4 +89,35 @@ export const getVendorById = async (
   }
 
   return res.status(404).json({ message: "No vendor data found!" });
+};
+
+/**-------------------- Get All Transaction -------------------- */
+export const getTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const transactions = await Transaction.find();
+
+  if (transactions) {
+    return res.status(200).json(transactions);
+  }
+
+  return res.status(404).json({ message: "No Transaction data available!" });
+};
+
+/**-------------------- Get Transaction By Id -------------------- */
+export const getTransactionById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const transaction_id = req.params.id;
+  const transaction = await Transaction.findById(transaction_id);
+
+  if (transaction) {
+    return res.status(200).json(transaction);
+  }
+
+  return res.status(404).json({ message: "No Transaction data found!" });
 };
