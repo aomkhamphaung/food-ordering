@@ -106,7 +106,7 @@ export const customerLogin = async (
   }
 
   const { email, password } = loginInput;
-  const customer = await Customer.findOne({ email: email, verified: true });
+  const customer = await Customer.findOne({ email: email });
 
   if (customer) {
     const validation = await ValidatePassword(
