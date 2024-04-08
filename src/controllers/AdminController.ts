@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
 import { Transaction, Vendor } from "../models";
 import { GeneratePassword, GenerateSalt } from "../utility";
+import { Delivery } from "../models/Delivery";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
   if (email) {
@@ -120,4 +121,41 @@ export const getTransactionById = async (
   }
 
   return res.status(404).json({ message: "No Transaction data found!" });
+};
+
+/**-------------------- Verify Deliveryman -------------------- */
+export const verifyDelivery = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id, status } = req.body;
+
+  if (_id) {
+    const profile = await Delivery.findById(_id);
+
+    if (profile) {
+      profile.verified = status;
+      const result = await profile.save();
+
+      return res.status(200).json(result);
+    }
+  }
+
+  return res.status(400).json({ message: "Unable to verify delivery man!" });
+};
+
+/**-------------------- Get All Delivery Men -------------------- */
+export const getAllDeliveryMen = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const deliverymen = await Delivery.find();
+
+  if (deliverymen) {
+    return res.status(200).json(deliverymen);
+  }
+
+  return res.status(400).json({ message: "Error fetching delivery men!" });
 };
