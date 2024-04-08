@@ -7,6 +7,7 @@ interface DeliveryDoc extends Document {
   firstName: string;
   lastName: string;
   address: string;
+  pincode: string;
   phone: string;
   verified: boolean;
   lat: number;
@@ -22,6 +23,7 @@ const DeliverySchema = new Schema(
     firstName: { type: String },
     lastName: { type: String },
     address: { type: String },
+    pincode: { type: String },
     phone: { type: Number, require: true },
     verified: { type: Boolean, require: true },
     lat: { type: Number },

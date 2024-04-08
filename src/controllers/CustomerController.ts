@@ -25,6 +25,7 @@ import {
   Vendor,
 } from "../models";
 import mongoose from "mongoose";
+import { Delivery } from "../models/Delivery";
 
 /**-------------------- Signup -------------------- */
 export const customerSignup = async (
@@ -400,6 +401,23 @@ const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
     const areaCode = vendor.pincode;
     const vendorLat = vendor.lat;
     const vendorLng = vendor.lng;
+
+    const deliveryPerson = await Delivery.find({
+      pincode: areaCode,
+      verified: true,
+      isAvailable: true,
+    });
+
+    if (deliveryPerson) {
+      console.log(deliveryPerson[0]);
+      const currentOrder = await Order.findById(orderId);
+
+      if (currentOrder) {
+        currentOrder.deliveryId = deliveryPerson[0]._id;
+        const response = await currentOrder.save();
+        console.log(response);
+      }
+    }
   }
 };
 
