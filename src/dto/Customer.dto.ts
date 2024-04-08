@@ -26,7 +26,7 @@ export class EditCustomerInput {
   @Length(3, 16)
   lastName: string;
 
-  @Length(6, 16)
+  @Length(6, 24)
   address: string;
 }
 

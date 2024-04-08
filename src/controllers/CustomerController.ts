@@ -85,6 +85,8 @@ export const customerSignup = async (
       .status(201)
       .json({ token: token, verified: result.verified, email: result.email });
   }
+
+  return res.status(400).json({ message: "Error" });
 };
 
 /**-------------------- Login -------------------- */
