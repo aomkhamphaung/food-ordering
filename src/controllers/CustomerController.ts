@@ -25,6 +25,7 @@ import {
   Vendor,
 } from "../models";
 import mongoose from "mongoose";
+import { Delivery } from "../models/Delivery";
 
 /**-------------------- Signup -------------------- */
 export const customerSignup = async (
@@ -85,6 +86,8 @@ export const customerSignup = async (
       .status(201)
       .json({ token: token, verified: result.verified, email: result.email });
   }
+
+  return res.status(400).json({ message: "Error" });
 };
 
 /**-------------------- Login -------------------- */
@@ -104,7 +107,7 @@ export const customerLogin = async (
   }
 
   const { email, password } = loginInput;
-  const customer = await Customer.findOne({ email: email, verified: true });
+  const customer = await Customer.findOne({ email: email });
 
   if (customer) {
     const validation = await ValidatePassword(
@@ -398,6 +401,23 @@ const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
     const areaCode = vendor.pincode;
     const vendorLat = vendor.lat;
     const vendorLng = vendor.lng;
+
+    const deliveryPerson = await Delivery.find({
+      pincode: areaCode,
+      verified: true,
+      isAvailable: true,
+    });
+
+    if (deliveryPerson) {
+      console.log(deliveryPerson[0]);
+      const currentOrder = await Order.findById(orderId);
+
+      if (currentOrder) {
+        currentOrder.deliveryId = deliveryPerson[0]._id;
+        const response = await currentOrder.save();
+        console.log(response);
+      }
+    }
   }
 };
 
